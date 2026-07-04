@@ -1,10 +1,11 @@
 <?php
-session_start();
-require_once 'koneksi.php'; // koneksi tetap di folder utama
-/** @var mysqli $koneksi */
 
+session_start();
+
+require_once 'koneksi.php';
 require_once 'AuthModel.php';
 require_once 'AuthController.php';
+require_once 'AuthMiddleware.php';
 
 $authModel = new AuthModel($koneksi);
 $authController = new AuthController($authModel);
@@ -12,18 +13,28 @@ $authController = new AuthController($authModel);
 $page = $_GET['page'] ?? 'login';
 
 switch ($page) {
+
     case 'login':
         $authController->indexLogin();
         break;
+
     case 'dashboard_admin':
-        if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') header("Location: index.php?page=login");
-        require_once 'dashboard_admin.php';
+        AuthMiddleware::checkLogin();
+        AuthMiddleware::checkAdmin();
+        require_once 'views/dashboard/admin.php';
         break;
+
     case 'dashboard_pegawai':
-        if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'pegawai') header("Location: index.php?page=login");
-        require_once 'dashboard.php';
+        AuthMiddleware::checkLogin();
+
+        require_once 'views/dashboard/pegawai.php';
         break;
-    case 'logout': // <--- Tambahkan case logout ini!
+
+    case 'logout':
         $authController->logout();
+        break;
+
+    default:
+        echo "404 - Page Not Found";
         break;
 }
