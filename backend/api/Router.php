@@ -35,21 +35,29 @@ class Router
     public function run()
     {
         $method = $_SERVER['REQUEST_METHOD'];
-        $uri = $_GET['route'] ?? '';
+        $uri    = $_GET['route'] ?? '';
+
         foreach ($this->routes as $route) {
             if ($route['method'] === $method && $route['uri'] === $uri) {
-                [$controller, $function] = $route['action'];
-                require_once __DIR__ . "/../controllers/" . basename(str_replace("\\", "/", $controller)) . ".php";
+                [$controller, $function] = $route['action']; require_once __DIR__ . "/../controllers/" . basename(str_replace("\\", "/", $controller)) . ".php";
                 $obj = new $controller();
-                $obj->$function();
+                if (isset($_GET['id'])) {
+                    $obj->$function($_GET['id']);
+                } else {
+                    $obj->$function();
+                }
+
                 return;
             }
         }
 
         http_response_code(404);
         echo json_encode([
-            "status" => false,
+            "status"  => false,
             "message" => "Route tidak ditemukan"
         ]);
     }
+
 }
+
+
