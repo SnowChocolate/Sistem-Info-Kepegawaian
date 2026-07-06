@@ -1,0 +1,33 @@
+{
+  "name": "sistem-info-kepegawaian",
+  "version": "1.0.0",
+  "description": "Tugas Kelompok 1 SISTEM INF KEPEGAWAIAN",
+  "keywords": [
+    "Tugas",
+    "Kelompok1",
+    "Sistem"
+  ],
+  "homepage": "https://github.com/SnowChocolate/Sistem-Info-Kepegawaian#readme",
+  "bugs": {
+    "url": "https://github.com/SnowChocolate/Sistem-Info-Kepegawaian/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SnowChocolate/Sistem-Info-Kepegawaian.git"
+  },
+  "license": "ISC",
+  "author": "Kelompok-1",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/style.css --watch"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.2",
+    "tailwindcss": "^4.3.2"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.5.1": true
+  }
+}
