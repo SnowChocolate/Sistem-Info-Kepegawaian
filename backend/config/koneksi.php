@@ -5,7 +5,7 @@ class Database
     private $host = "localhost";
     private $user = "root";
     private $pass = "";
-    private $db   = "sistem_inf_kepegawaian";
+    private $db   = "sistem_info_kepegawaian";
 
     public $conn;
 

@@ -1,73 +1,77 @@
-<?php
-session_start();
-if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php");
-    exit();
-}
-//require_once 'koneksi.php';
-/** @var mysqli $koneksi */
-
-$query_pegawai = "SELECT COUNT(*) as total FROM pegawai";
-$result_pegawai = mysqli_query($koneksi, $query_pegawai);
-$total_pegawai = ($result_pegawai) ? mysqli_fetch_assoc($result_pegawai)['total'] : 0;
-?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Admin - SIMPEG</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f6f9; }
-        /* Style Navbar */
-        .navbar { display: flex; justify-content: space-between; align-items: center; background: #343a40; padding: 10px 20px; color: #fff; }
-        .nav-links { display: flex; gap: 15px; }
-        .nav-links a { color: #fff; text-decoration: none; padding: 8px 12px; border-radius: 4px; }
-        .nav-links a:hover, .nav-links a.active { background: #007bff; }
-        .btn-logout { color: #ffc107; text-decoration: none; font-weight: bold; }
-        
-        .container { padding: 20px; }
-        .grid { display: flex; gap: 20px; margin-top: 20px; }
-        .card { background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1; border-top: 4px solid #007bff; }
-        .menu-list { margin-top: 20px; background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .menu-list ul { list-style: none; padding: 0; }
-        .menu-list li { margin: 10px 0; }
-        .menu-list a { display: inline-block; padding: 10px 15px; background: #007bff; color: white; text-decoration: none; border-radius: 3px; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMPEG - Dashboard Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="bg-gray-100 font-sans antialiased text-gray-800">
 
-    <div class="navbar">
-        <div class="nav-links">
-            <a href="dashboard_admin.php" class="active">Home</a>
-            <a href="#about" onclick="alert('SIMPEG v1.0 - Aplikasi Sistem Informasi Kepegawaian Kampus/Instansi.')">About</a>
-            <a href="#contact" onclick="alert('Hubungi IT Support: admin@simpeg.com / Telp: 0251-XXXXXX')">Contact</a>
-        </div>
-        <div>
-            <span>Halo, <strong><?php echo $_SESSION['username']; ?> (Admin)</strong></span> | 
-            <a href="index.php?page=logout">Log Out</a>
-        </div>
-    </div>
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between hidden md:flex flex-shrink-0">
+            <div>
+                <div class="h-16 flex items-center justify-center bg-slate-950 px-6 border-b border-slate-800">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-shield-halved text-amber-400 text-2xl"></i>
+                        <span class="text-lg font-bold tracking-wider">SIMPEG ADMIN</span>
+                    </div>
+                </div>
 
-    <div class="container">
-        <h2>Halaman Utama Admin</h2>
-        <div class="grid">
-            <div class="card">
-                <h3>Total Pegawai Terdaftar</h3>
-                <p style="font-size: 24px; font-weight: bold; color: #007bff;"><?php echo $total_pegawai; ?> Orang</p>
+                <nav class="mt-4 px-3 space-y-1">
+                    <a href="index.php?page=dashboard_admin" class="flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition-all">
+                        <i class="fa-solid fa-chart-pie mr-3 w-5 text-center"></i> Beranda Admin
+                    </a>
+                    
+                    <div class="space-y-1">
+                        <span class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider block mt-4 mb-1">Manajemen SDM</span>
+                        <a href="index.php?page=daftar_pegawai" class="flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition-all">
+                            <i class="fa-solid fa-users mr-3 w-5 text-center"></i> Kelola Data Pegawai
+                        </a>
+                    </div>
+                </nav>
             </div>
-            <div class="card">
-                <h3>Status Sistem</h3>
-                <p style="font-size: 24px; font-weight: bold; color: #28a745;">Aktif / Online</p>
-            </div>
-        </div>
 
-        <div class="menu-list">
-            <h3>Panel Kontrol Manajemen Admin:</h3>
-            <ul>
-                <li><a href="tampil_pegawai.php">👁️ Kelola & Data Master Pegawai (CRUD)</a></li>
-                <li><a href="tambah_pegawai.php">➕ Tambah Pegawai Baru</a></li>
-                <li><a href="rekap_absensi.php">📅 Rekapitulasi Absensi Seluruh Pegawai</a></li>
-            </ul>
+            <div class="p-3 border-t border-slate-800">
+                <a href="index.php?page=logout" class="flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all">
+                    <i class="fa-solid fa-right-from-bracket mr-3 w-5 text-center"></i> Keluar Sistem
+                </a>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-y-auto">
+            
+            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm">
+                <h1 class="text-xl font-bold text-gray-800">Panel Administrator Portal 🔐</h1>
+                <div class="text-sm font-medium text-gray-500"><?php echo date('d M Y'); ?></div>
+            </header>
+
+            <main class="p-6">
+                <?php
+                $current_page = $_GET['page'] ?? 'dashboard_admin';
+                
+                switch ($current_page) {
+                    case 'daftar_pegawai':
+                        include __DIR__ . '/../pegawai/Daftar_Pegawai.php';
+                        break;
+                    case 'tambah_pegawai':
+                        include __DIR__ . '/../pegawai/Tambah_Pegawai.php';
+                        break;
+                    case 'detail_pegawai':
+                        include __DIR__ . '/../pegawai/Detail_Pegawai.php';
+                        break;
+                    
+                    case 'dashboard_admin':
+                    default:
+                        // Taruh file ringkasan codingan dashboard admin (Total Pegawai, Hadir Hari Ini, dsb) di sini
+                        include __DIR__ . '/konten_ringkasan_admin.php'; 
+                        break;
+                }
+                ?>
+            </main>
+
         </div>
     </div>
 

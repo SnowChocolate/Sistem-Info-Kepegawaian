@@ -34,31 +34,45 @@ switch ($page) {
         $authController->index(); 
         break;
 
+    case 'register':
+        $authController->register(); // Memanggil fungsi registrasi baru
+        break;
+
     case 'logout':
         $authController->logout();
         break;
 
-    case 'dashboard_admin':
+case 'dashboard_admin':
         AuthMiddleware::checkLogin();
         AuthMiddleware::checkAdmin();
-        // Menggunakan jalur dinamis __DIR__ agar aman
-        // Jika nama filenya ternyata index.php:
-require_once __DIR__ . '/frontend/dashboard/index.php';
-
-// Atau jika nama filenya dashboard_pegawai.php:
-require_once __DIR__ . '/frontend/dashboard/dashboard_admin.php'; 
+        
+        require_once __DIR__ . '/frontend/dashboard/dashboard_admin.php'; 
         break;
 
-   case 'dashboard_pegawai':
-        AuthMiddleware::checkLogin();
-        
-        // Jembatan: Definisikan $koneksi agar dibaca oleh file dashboard.php temanmu
-        // Ganti $db->getConnection() di bawah ini dengan variabel/method koneksi database aslimu jika namanya berbeda (misal: $conn)
-       $koneksi = $conn;; 
-        
+   // RUTE UNTUK DASHBOARD PEGAWAI BIASA (Hanya fitur mandiri)
+    case 'dashboard_pegawai':
+    case 'form_absensi':
+    case 'rekap_absensi':
+    case 'form_cuti':
+    case 'persetujuan_cuti':
+    case 'riwayat_cuti':
+    case 'slip_gaji':
+        AuthMiddleware::checkLogin(); 
+        $koneksi = $conn; 
         require_once __DIR__ . '/frontend/dashboard/dashboard.php'; 
         break;
 
+    // 🔐 RUTE KHUSUS MANAJEMEN PEGAWAI (HANYA UNTUK ADMIN)
+    case 'daftar_pegawai':
+    case 'detail_pegawai':
+    case 'tambah_pegawai':
+        AuthMiddleware::checkLogin();
+        AuthMiddleware::checkAdmin(); // 🔥 Pegawai biasa otomatis ditolak di sini
+        
+        $koneksi = $conn; 
+        // Memuat halaman lewat template admin, bukan dashboard pegawai
+        require_once __DIR__ . '/frontend/dashboard/dashboard_admin.php'; 
+        break;
     // ==========================================
     // RUTE API UNTUK PEGAWAI / KARYAWAN
     // ==========================================
