@@ -16,21 +16,48 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
-                <?php if(!empty($rekap_absensi)): foreach($rekap_absensi as $a): ?>
-                <tr class="text-sm text-gray-700">
-                    <td class="px-6 py-4 font-medium"><?= $a['tanggal']; ?></td>
-                    <td class="px-6 py-4"><?= $a['nama_pegawai']; ?></td>
-                    <td class="px-6 py-4 text-green-600 font-semibold"><?= $a['jam_masuk'] ?? '--:--'; ?></td>
-                    <td class="px-6 py-4 text-red-600 font-semibold"><?= $a['jam_pulang'] ?? '--:--'; ?></td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium"><?= $a['status'] ?? 'Tepat Waktu'; ?></span>
-                    </td>
-                </tr>
-                <?php endforeach; else: ?>
-                <tr>
-                    <td colspan="5" class="px-6 py-10 text-center text-gray-400">Tidak ada log absensi bulan ini.</td>
-                </tr>
-                <?php endif; ?>
+                <?php
+// Di dalam file frontend/absensi/rekap_absensi.php
+
+/** @var mysqli $conn */
+/** @var mysqli $koneksi */
+$koneksi_db = $conn ?? $koneksi;
+
+$id_user = $_SESSION['id_user'] ?? 0;
+$role = $_SESSION['role'] ?? 'pegawai'; // Pastikan session role Anda bernama 'admin' / 'pegawai'
+
+// KONDISI TAMPILAN DATA
+if ($role === 'admin') {
+    // Jika Admin, ambil data absensi SELURUH pegawai
+    $query = "SELECT absensi.*, pegawai.nama, pegawai.jabatan 
+              FROM absensi 
+              JOIN pegawai ON absensi.id_user = pegawai.id_user 
+              ORDER BY absensi.tanggal DESC, absensi.jam_masuk DESC";
+} else {
+    // Jika Pegawai biasa, HANYA ambil data milik dia sendiri
+    $query = "SELECT absensi.*, pegawai.nama, pegawai.jabatan 
+              FROM absensi 
+              JOIN pegawai ON absensi.id_user = pegawai.id_user 
+              WHERE absensi.id_user = '$id_user' 
+              ORDER BY absensi.tanggal DESC";
+}
+
+$result = mysqli_query($koneksi_db, $query);
+?>
+
+<?php while ($row = mysqli_fetch_assoc($result)) : ?>
+<tr class="border-b border-gray-100 hover:bg-gray-50 text-gray-700">
+    <td class="px-6 py-4"><?= date('d M Y', strtotime($row['tanggal'])); ?></td>
+    <td class="px-6 py-4 font-semibold"><?= $row['nama']; ?> (<?= $row['jabatan']; ?>)</td>
+    <td class="px-6 py-4 text-emerald-600 font-medium"><?= $row['jam_masuk']; ?></td>
+    <td class="px-6 py-4 text-orange-600 font-medium"><?= $row['jam_pulang'] ?? '-- : --'; ?></td>
+    <td class="px-6 py-4">
+        <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+            <?= $row['status']; ?>
+        </span>
+    </td>
+</tr>
+<?php endwhile; ?>
             </tbody>
         </table>
     </div>

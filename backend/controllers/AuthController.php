@@ -33,14 +33,12 @@ class AuthController
 
             // === JALUR VERIFIKASI MULTI-ROLE (LANGSUNG TO THE POINT) ===
             if ($user['role'] === 'admin') {
-                // Admin: Cek teks polos biasa atau MD5 atau hash
                 if ($password !== $user['password'] && md5($password) !== $user['password'] && !password_verify($password, $user['password'])) {
                     $_SESSION['error'] = "Password salah.";
                     header("Location: index.php?page=login");
                     exit;
                 }
             } else {
-                // Pegawai: Wajib lewat password_verify hasil registrasi
                 if (!password_verify($password, $user['password'])) {
                     $_SESSION['error'] = "Password salah.";
                     header("Location: index.php?page=login");
@@ -66,40 +64,58 @@ class AuthController
         require_once __DIR__ . '/../../frontend/auth/view_login.php';
     }
 
+    public function register() {
+    // Ambil koneksi database yang sudah diinisialisasi oleh sistem MVC kamu
+    global $conn; 
     
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $username = mysqli_real_escape_string($conn, trim($_POST['username']));
+        $password = trim($_POST['password']);
+        $jabatan  = mysqli_real_escape_string($conn, trim($_POST['jabatan'])); // AMBIL INPUT JABATAN DARI FORM
 
-  // ==========================================
-    // 🛠️ FUNGSI REGISTRASI PEGAWAI
-    // ==========================================
-    public function register()
-    {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $username = isset($_POST['username']) ? trim($_POST['username']) : '';
-            $password = isset($_POST['password']) ? trim($_POST['password']) : '';
-            $role = 'pegawai'; 
-
-            if (empty($username) || empty($password)) {
-                $_SESSION['error'] = "Username dan Password wajib diisi.";
-                header("Location: index.php?page=register");
-                exit;
-            }
-
-            $password_hashed = password_hash($password, PASSWORD_DEFAULT);
-            $simpan = $this->authModel->registerUser($username, $password_hashed, $role);
-
-            if ($simpan) {
-                $_SESSION['success'] = "Registrasi sukses! Silakan login dengan akun Anda.";
-                header("Location: index.php?page=login");
-            } else {
-                $_SESSION['error'] = "Registrasi gagal! Username mungkin sudah digunakan.";
-                header("Location: index.php?page=register");
-            }
+        if (empty($username) || empty($password) || empty($jabatan)) {
+            echo "<script>alert('Semua data wajib diisi!'); window.history.back();</script>";
             exit;
         }
 
-        // 🛠️ PASTIKAN DI SINI MEMANGGIL view_registrasi.php Sesuai Nama Filemu
-        require_once 'frontend/auth/registrasi.php';
+        // 1. Cek apakah username sudah ada di tabel users
+        $cek_user = mysqli_query($conn, "SELECT * FROM users WHERE username = '$username' LIMIT 1");
+        if (mysqli_num_rows($cek_user) > 0) {
+            echo "<script>alert('Username sudah terdaftar!'); window.history.back();</script>";
+            exit;
+        }
+
+        $password_hashed = password_hash($password, PASSWORD_DEFAULT);
+
+        // 2. Simpan Akun ke tabel 'users'
+        $query_users = "INSERT INTO users (username, password, role) VALUES ('$username', '$password_hashed', 'pegawai')";
+        $simpan_users = mysqli_query($conn, $query_users);
+
+        if ($simpan_users) {
+            $id_user_baru = mysqli_insert_id($conn);
+
+            // 3. SINKRONISASI: Simpan detail data ke tabel 'pegawai' sesuai jabatan yang diisi!
+            $query_pegawai = "INSERT INTO pegawai (id_user, nama, jabatan, sisa_cuti) 
+                              VALUES ('$id_user_baru', '$username', '$jabatan', 12)";
+            $simpan_pegawai = mysqli_query($conn, $query_pegawai);
+
+            if ($simpan_pegawai) {
+                echo "<script>alert('Registrasi Berhasil! Data Pegawai SINKRON.'); window.location.href='index.php?page=login';</script>";
+                exit;
+            } else {
+                die("Akun users dibuat, tapi tabel pegawai menolak: " . mysqli_error($conn));
+            }
+        } else {
+            echo "<script>alert('Gagal registrasi akun.'); window.history.back();</script>";
+            exit;
+        }
     }
+
+    // Jika load halaman biasa, panggil tampilan form register kamu
+    // (Sesuaikan dengan jalur include view register asli bawaan proyekmu jika berbeda)
+    require_once __DIR__ . '/../../frontend/auth/registrasi.php';
+}
+
     public function logout()
     {
         $_SESSION = [];
