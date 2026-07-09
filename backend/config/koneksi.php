@@ -2,10 +2,10 @@
 
 class Database
 {
-    private $host = "localhost";
-    private $user = "root";
-    private $pass = "";
-    private $db   = "sistem_info_kepegawaian";
+    $host = "sql107.infinityfree.com";
+    $user = "if0_42371485";
+    $pass = "0PA2Hu4xFZVLV";
+    $db   = "if0_42371485_XXX";
 
     public $conn;
 
