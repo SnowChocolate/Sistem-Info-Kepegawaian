@@ -7,9 +7,9 @@ if (!$koneksi_direct) {
 }
 
 // ==========================================
-// PERBAIKAN: HANDLER AJAX DILETAKKAN PALING ATAS
+// PERBAIKAN: DISINKRONKAN DENGAN JAVASCRIPT FETCH
 // ==========================================
-if (isset($_GET['ajax_search'])) {
+if (isset($_GET['action_ajax']) && $_GET['action_ajax'] === 'cari_pegawai') {
     $keyword = mysqli_real_escape_string($koneksi_direct, trim($_GET['keyword'] ?? ''));
     $where_ajax = "";
     if (!empty($keyword)) {
@@ -48,10 +48,10 @@ if (isset($_GET['ajax_search'])) {
     } else {
         echo '<tr><td colspan="6" class="px-6 py-10 text-center text-sm text-gray-400">Data pegawai tidak ditemukan.</td></tr>';
     }
-    exit; // Berhenti di sini agar layout index.php tidak ikut ter-render ulang!
+    exit; // Berhenti di sini agar layout utama tidak ikut hancur
 }
 
-// Fitur Pencarian Bawaan untuk Load Pertama Kali
+// Fitur Pencarian Bawaan untuk Load Pertama Kali (POST)
 $keyword = "";
 $where_clause = "";
 if (isset($_POST['cari'])) {
@@ -85,10 +85,10 @@ while ($row = mysqli_fetch_assoc($query)) {
         <p class="text-sm text-gray-600">Kelola informasi profil, posisi, dan status kepegawaian.</p>
     </div>
     
-    <form id="form-pencarian" action="" method="POST" class="flex items-center gap-2 w-full sm:w-auto">
+    <form id="form-pencarian" action="" method="POST" class="flex items-center gap-2 w-full sm:w-auto" onsubmit="return false;">
         <input type="text" id="input-keyword" name="keyword" value="<?= htmlspecialchars($keyword); ?>" placeholder="Cari nama / jabatan..." 
                class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 w-full sm:w-64">
-        <button type="submit" name="cari" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors flex items-center gap-1">
+        <button type="button" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors flex items-center gap-1">
             <i class="fa-solid fa-magnifying-glass text-xs"></i> Cari
         </button>
         <?php if(!empty($keyword)): ?>
@@ -139,20 +139,44 @@ while ($row = mysqli_fetch_assoc($query)) {
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const inputKeyword = document.getElementById("input-keyword"); // Sesuaikan ID input pencarian Anda
-    const wadahData = document.getElementById("wadah-data-pegawai"); // Sesuaikan ID tbody tabel Anda
+    const inputKeyword = document.getElementById("input-keyword");
+    const wadahData = document.getElementById("wadah-data-pegawai");
 
     function jalankanAjax(keyword) {
-        // Menggunakan rute interceptor murni tanpa memicu template layout induk
+        // PERBAIKAN: Parameter disamakan dengan validasi PHP di atas 
+        // Menggunakan URL dinamis agar tetap sinkron dengan halaman tempat ia berada
         fetch(`index.php?action_ajax=cari_pegawai&keyword=${encodeURIComponent(keyword)}`)
             .then(response => response.text())
             .then(html => {
                 wadahData.innerHTML = html;
-            });
+            })
+            .catch(err => console.error("Gagal memuat data AJAX:", err));
     }
 
     inputKeyword.addEventListener("keyup", function () {
         jalankanAjax(this.value);
     });
 });
+
+function hapusPegawai(idPegawai) {
+    // Tampilkan konfirmasi pop-up bawaan browser terlebih dahulu
+    if (confirm("Apakah Anda yakin ingin menghapus pegawai ini?")) {
+        // Kirim permintaan hapus ke backend
+        fetch(`backend/proses/proses_hapus_pegawai_ajax.php?id=${idPegawai}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert("Data pegawai berhasil dihapus!");
+                // Cari fungsi muat data/AJAX Anda untuk merefresh tabel secara otomatis
+                // Contoh: loadTableData(); 
+                location.reload(); // Atau reload halaman jika belum pakai AJAX penuh
+            } else {
+                alert("Gagal menghapus data: " + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+}
 </script>

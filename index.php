@@ -62,7 +62,7 @@ if ($page === 'api_cari_pegawai' || $page === 'api_cari_cuti' || $page === 'api_
                     <td class="px-6 py-4 text-sm text-gray-600"><?= (!empty($p['jabatan'])) ? htmlspecialchars($p['jabatan']) : 'Staff'; ?></td>
                     <td class="px-6 py-4 text-sm text-gray-600"><?= !empty($p['sisa_cuti']) ? htmlspecialchars($p['sisa_cuti']) : '12'; ?> Hari</td>
                     <td class="px-6 py-4 text-sm space-x-3">
-                        <a href="index.php?page=detail_pegawai&id=<?= $p['id_pegawai']; ?>" class="text-amber-500 hover:text-amber-700 font-medium inline-flex items-center gap-1">
+                        <a href="index.php?page=edit_pegawai&id=<?= $p['id_user']; ?>" class="text-amber-500 hover:text-amber-700 font-medium inline-flex items-center gap-1">
                             <i class="fa-solid fa-pen-to-square"></i> Edit
                         </a>
                         <a href="index.php?page=daftar_pegawai&aksi=hapus&id=<?= $p['id_user']; ?>" onclick="return confirm('Hapus data pegawai ini beserta akunnya?')" class="text-red-600 hover:text-red-800 font-medium inline-flex items-center gap-1">
@@ -78,11 +78,9 @@ if ($page === 'api_cari_pegawai' || $page === 'api_cari_cuti' || $page === 'api_
         exit();
     }
 
-    // B. API CARI PERSETUJUAN CUTI (FIXED: CASE SENSITIVE & ROUTING SAFE)
+    // B. API CARI PERSETUJUAN CUTI
     if ($page === 'api_cari_cuti' || ($_GET['action_ajax'] ?? '') === 'cari_cuti') {
         $keyword = mysqli_real_escape_string($koneksi_direct, trim($_GET['keyword'] ?? ''));
-        
-        // Perbaikan: Loloskan data baik yang statusnya 'Pending' maupun 'pending'
         $where_clause = "WHERE (cuti.status = 'Pending' OR cuti.status = 'pending')";
 
         if (!empty($keyword)) {
@@ -90,12 +88,7 @@ if ($page === 'api_cari_pegawai' || $page === 'api_cari_cuti' || $page === 'api_
         }
 
         $query_ambil = mysqli_query($koneksi_direct, "
-            SELECT 
-                cuti.id, 
-                cuti.tanggal_mulai AS tgl_mulai, 
-                cuti.tanggal_selesai AS tgl_selesai, 
-                cuti.alasan, 
-                COALESCE(pegawai.nama, users.username, 'Pegawai') AS nama_pegawai 
+            SELECT cuti.id, cuti.tanggal_mulai AS tgl_mulai, cuti.tanggal_selesai AS tgl_selesai, cuti.alasan, COALESCE(pegawai.nama, users.username, 'Pegawai') AS nama_pegawai 
             FROM cuti 
             LEFT JOIN pegawai ON cuti.id_user = pegawai.id_user
             LEFT JOIN users ON cuti.id_user = users.id
@@ -111,10 +104,8 @@ if ($page === 'api_cari_pegawai' || $page === 'api_cari_cuti' || $page === 'api_
                     <td class="px-6 py-4 text-gray-600"><?= date('d M Y', strtotime($a['tgl_mulai'])); ?> s/d <?= date('d M Y', strtotime($a['tgl_selesai'])); ?></td>
                     <td class="px-6 py-4 text-gray-500"><?= htmlspecialchars($a['alasan']); ?></td>
                     <td class="px-6 py-4 space-x-2">
-                        <button data-id="<?= $a['id']; ?>" data-aksi="setuju" data-pesan="Apakah Anda yakin ingin MENYETUJUI permohonan cuti ini?"
-                           class="tombol-proses-cuti px-3 py-1 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors">Setujui</button>
-                        <button data-id="<?= $a['id']; ?>" data-aksi="tolak" data-pesan="Apakah Anda yakin ingin MENOLAK permohonan cuti ini?"
-                           class="tombol-proses-cuti px-3 py-1 bg-red-600 text-white rounded text-xs font-medium hover:bg-red-700 transition-colors">Tolak</button>
+                        <button data-id="<?= $a['id']; ?>" data-aksi="setuju" data-pesan="Apakah Anda yakin ingin MENYETUJUI permohonan cuti ini?" class="tombol-proses-cuti px-3 py-1 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors">Setujui</button>
+                        <button data-id="<?= $a['id']; ?>" data-aksi="tolak" data-pesan="Apakah Anda yakin ingin MENOLAK permohonan cuti ini?" class="tombol-proses-cuti px-3 py-1 bg-red-600 text-white rounded text-xs font-medium hover:bg-red-700 transition-colors">Tolak</button>
                     </td>
                 </tr>
                 <?php
@@ -176,6 +167,7 @@ switch ($page) {
     // ==========================================
     case 'dashboard_admin':
     case 'daftar_pegawai':
+    case 'edit_pegawai': // FIX 2: Daftarkan rute 'edit_pegawai' di sini agar template admin mengenalnya
     case 'detail_pegawai':
     case 'tambah_pegawai':
     case 'absensi':          
@@ -183,10 +175,21 @@ switch ($page) {
     case 'gaji':             
     case 'cuti':             
     case 'persetujuan_cuti': 
+        case 'proses_hapus_pegawai' :
         AuthMiddleware::checkLogin();
         AuthMiddleware::checkAdmin(); 
         
         $koneksi = $conn; 
+
+        // FIX 3: Tangani Logika Aksi Hapus di Sini sebelum me-render tampilan daftar_pegawai
+        if ($page === 'daftar_pegawai' && isset($_GET['aksi']) && $_GET['aksi'] === 'hapus') {
+            if (isset($_GET['id'])) {
+                $pegawaiController->destroy($_GET['id']); // Memanggil destroy() dari PegawaiController
+            }
+            header("Location: index.php?page=daftar_pegawai");
+            exit();
+        }
+
         require_once __DIR__ . '/frontend/dashboard/dashboard_admin.php'; 
         break;
 

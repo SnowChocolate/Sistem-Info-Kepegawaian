@@ -18,15 +18,19 @@ class PegawaiModel
         return $this->db->query($query);
     }
 
-    // Ambil data satu pegawai berdasarkan ID
-    public function getById($id)
-    {
-        $query = "SELECT * FROM pegawai WHERE id = ?";
-        $stmt = $this->db->prepare($query);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
-    }
+    public function delete($id)
+{
+    // Hapus data pegawai
+    $stmt = $this->db->prepare("DELETE FROM pegawai WHERE id_user = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+
+    // Hapus akun user
+    $stmt = $this->db->prepare("DELETE FROM users WHERE id = ?");
+    $stmt->bind_param("i", $id);
+
+    return $stmt->execute();
+}
 
     // Ambil data pegawai berdasarkan NIP (untuk validasi data unik)
     public function getByNip($nip)
@@ -53,15 +57,6 @@ class PegawaiModel
         $query = "UPDATE pegawai SET nama = ?, jabatan = ?, telepon = ? WHERE id = ?";
         $stmt = $this->db->prepare($query);
         $stmt->bind_param("sssi", $nama, $jabatan, $telepon, $id);
-        return $stmt->execute();
-    }
-
-    // Hapus data pegawai
-    public function delete($id)
-    {
-        $query = "DELETE FROM pegawai WHERE id = ?";
-        $stmt = $this->db->prepare($query);
-        $stmt->bind_param("i", $id);
         return $stmt->execute();
     }
 }

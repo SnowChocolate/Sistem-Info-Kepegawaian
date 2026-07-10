@@ -66,7 +66,7 @@ $gaji_sudah_ada = ($data_gaji['total_gaji'] ?? 0) > 0;
                         <div class="p-2.5 bg-blue-600 rounded-xl text-white shadow-md shadow-blue-500/20">
                             <i class="fa-solid fa-id-card-alt text-lg"></i>
                         </div>
-                        <span class="text-base font-black tracking-wider text-white uppercase">Simpeg Apps</span>
+                        <span class="text-base font-black tracking-wider text-white uppercase">PEGAWAI</span>
                     </div>
                 </div>
 

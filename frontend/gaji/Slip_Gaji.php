@@ -24,8 +24,13 @@ $query_check = mysqli_query($koneksi_db, "SHOW COLUMNS FROM gaji LIKE 'bulan'");
 $has_month_column = mysqli_num_rows($query_check) > 0;
 
 if ($has_month_column) {
-    // Jalur A: Jika tabel gaji Anda menggunakan kolom 'bulan' dan 'tahun' terpisah
-    $query_salary = mysqli_query($koneksi_db, "SELECT * FROM gaji WHERE id_user = '$id_user' AND bulan = '$filter_bulan' AND tahun = '$filter_tahun' LIMIT 1");
+    $query_salary = mysqli_query($koneksi_db, 
+"SELECT * FROM gaji 
+WHERE id_user = '$id_user' 
+AND bulan = '$filter_bulan' 
+AND tahun = '$filter_tahun'
+AND status_bayar='dibayar'
+LIMIT 1");
 } else {
     // Jalur B: Jika tabel gaji Anda menggunakan kolom 'tanggal' (Tipe DATE)
     $query_salary = mysqli_query($koneksi_db, "SELECT * FROM gaji WHERE id_user = '$id_user' AND MONTH(tanggal) = '$filter_bulan' AND YEAR(tanggal) = '$filter_tahun' LIMIT 1");
